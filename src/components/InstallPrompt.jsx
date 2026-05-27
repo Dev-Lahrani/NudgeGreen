@@ -1,19 +1,30 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 const DISMISSED_KEY = 'nudgegreen_install_dismissed'
+
+function safeGetStorage(key) {
+  try { return localStorage.getItem(key) } catch { return null }
+}
+function safeSetStorage(key, value) {
+  try { localStorage.setItem(key, value) } catch { /* ignore */ }
+}
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [visible, setVisible] = useState(false)
+  const [installing, setInstalling] = useState(false)
+  const showTimerRef = useRef(null)
+  const dismissTimerRef = useRef(null)
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISSED_KEY)) return
+    if (safeGetStorage(DISMISSED_KEY)) return
     if (window.matchMedia('(display-mode: standalone)').matches) return
 
     function onBeforeInstall(e) {
+      if (safeGetStorage(DISMISSED_KEY)) return
       e.preventDefault()
       setDeferredPrompt(e)
-      setTimeout(() => setVisible(true), 1200)
+      showTimerRef.current = setTimeout(() => setVisible(true), 1200)
     }
 
     function onInstalled() {
@@ -26,25 +37,34 @@ export default function InstallPrompt() {
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforeInstall)
       window.removeEventListener('appinstalled', onInstalled)
+      clearTimeout(showTimerRef.current)
+      clearTimeout(dismissTimerRef.current)
     }
   }, [])
 
   async function handleInstall() {
-    if (!deferredPrompt) return
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') {
-      setVisible(false)
-      setDeferredPrompt(null)
-    } else {
-      dismiss()
+    if (!deferredPrompt || installing) return
+    setInstalling(true)
+    try {
+      await deferredPrompt.prompt()
+      const { outcome } = await deferredPrompt.userChoice
+      if (outcome === 'accepted') {
+        setVisible(false)
+        setDeferredPrompt(null)
+      } else {
+        dismiss()
+      }
+    } catch {
+      // prompt() already open or InvalidStateError
+    } finally {
+      setInstalling(false)
     }
   }
 
   function dismiss() {
     setVisible(false)
-    localStorage.setItem(DISMISSED_KEY, '1')
-    setTimeout(() => setDeferredPrompt(null), 300)
+    safeSetStorage(DISMISSED_KEY, '1')
+    dismissTimerRef.current = setTimeout(() => setDeferredPrompt(null), 300)
   }
 
   if (!deferredPrompt) return null
@@ -73,7 +93,8 @@ export default function InstallPrompt() {
           </button>
           <button
             onClick={handleInstall}
-            className="px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-semibold hover:bg-green-700 active:bg-green-800 transition-colors"
+            disabled={installing}
+            className="px-3 py-1.5 rounded-full bg-green-600 text-white text-xs font-semibold hover:bg-green-700 active:bg-green-800 transition-colors disabled:opacity-50"
           >
             Install
           </button>
