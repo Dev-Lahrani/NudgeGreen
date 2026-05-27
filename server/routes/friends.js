@@ -81,10 +81,11 @@ router.post('/accept', (req, res) => {
 router.delete('/:userId', (req, res) => {
   const otherId = req.params.userId
   try {
-    db.prepare(`
+    const info = db.prepare(`
       DELETE FROM friendships
       WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)
     `).run(req.userId, otherId, otherId, req.userId)
+    if (info.changes === 0) return res.status(404).json({ error: 'Friendship not found' })
     res.json({ ok: true })
   } catch (err) {
     console.error(err)
