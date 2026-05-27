@@ -1,4 +1,4 @@
-import { findMatch } from '../data/carbonData'
+import { findMatch, classifyDecision } from '../data/carbonData'
 
 const OLLAMA_URL = 'http://localhost:11434/api/chat'
 const MODEL = 'llama3.1:8b'
@@ -15,16 +15,31 @@ const BASE_SYSTEM_PROMPT = `You are a sustainability expert. When given a daily 
 }
 Return only valid JSON. No explanation, no markdown, no extra text.`
 
-function buildSystemPrompt(match) {
-  if (!match) return BASE_SYSTEM_PROMPT
-  return `${BASE_SYSTEM_PROMPT}
+const CATEGORY_NUDGE = {
+  transport: 'Focus nudges on public transit, carpooling, or active travel alternatives.',
+  food:      'Focus nudges on plant-based options, reducing delivery frequency, and local sourcing.',
+  shopping:  'Focus nudges on second-hand options, slower delivery, and buying less.',
+  energy:    'Focus nudges on reducing usage duration, switching to renewables, or efficiency habits.',
+}
 
-VERIFIED DATA: This activity has been measured at ${match.co2_kg} kg CO₂ (category: ${match.category}, matched entry: "${match.label}"). Use exactly "~${match.co2_kg} kg CO₂" as the co2_estimate value. Base your impact_level and impact_reason on this verified figure.`
+function buildSystemPrompt(match, category) {
+  let prompt = BASE_SYSTEM_PROMPT
+
+  if (category && CATEGORY_NUDGE[category]) {
+    prompt += `\n\nCATEGORY: ${category}. ${CATEGORY_NUDGE[category]}`
+  }
+
+  if (match) {
+    prompt += `\n\nVERIFIED DATA: This activity has been measured at ${match.co2_kg} kg CO₂ (matched entry: "${match.label}"). Use exactly "~${match.co2_kg} kg CO₂" as the co2_estimate value. Base your impact_level and impact_reason on this verified figure.`
+  }
+
+  return prompt
 }
 
 export async function queryOllama(userDecision) {
   const match = findMatch(userDecision)
-  const systemPrompt = buildSystemPrompt(match)
+  const category = match?.category ?? classifyDecision(userDecision)
+  const systemPrompt = buildSystemPrompt(match, category)
 
   let response
   try {
@@ -69,6 +84,5 @@ export async function queryOllama(userDecision) {
     throw new Error('Could not parse model response. Try again.')
   }
 
-  // Attach match metadata so the UI can optionally show data provenance
-  return { ...parsed, _matched: match ?? null }
+  return { ...parsed, _matched: match ?? null, _category: category ?? null }
 }

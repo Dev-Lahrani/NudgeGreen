@@ -272,6 +272,46 @@ export const carbonData = [
   },
 ]
 
+// Broad fallback keywords used when no database entry matches
+const CATEGORY_KEYWORDS = {
+  transport: ['drive', 'driving', 'car', 'bus', 'train', 'metro', 'flight', 'fly', 'cab', 'taxi',
+              'bike', 'scooter', 'walk', 'commute', 'travel', 'ride', 'uber', 'ola', 'auto'],
+  food:      ['eat', 'food', 'meal', 'cook', 'cooking', 'restaurant', 'delivery', 'coffee',
+              'drink', 'lunch', 'dinner', 'breakfast', 'snack', 'order', 'zomato', 'swiggy',
+              'grocery', 'meat', 'veg', 'vegan', 'burger', 'pizza'],
+  shopping:  ['buy', 'buying', 'shop', 'shopping', 'purchase', 'order', 'amazon', 'flipkart',
+              'clothes', 'clothing', 'fashion', 'electronics', 'phone', 'gadget', 'delivery'],
+  energy:    ['ac', 'electricity', 'light', 'lights', 'power', 'charge', 'charging', 'shower',
+              'wash', 'laundry', 'stream', 'streaming', 'netflix', 'heat', 'heating', 'fan'],
+}
+
+/**
+ * Detect the category of a user's decision using keyword matching.
+ * Prefers a database match; falls back to broad category keywords.
+ * Returns 'transport' | 'food' | 'shopping' | 'energy' | null.
+ */
+export function classifyDecision(userDecision) {
+  const match = findMatch(userDecision)
+  if (match) return match.category
+
+  const input = userDecision.toLowerCase()
+  let bestCategory = null
+  let bestScore = 0
+
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    let score = 0
+    for (const kw of keywords) {
+      if (input.includes(kw)) score += kw.length
+    }
+    if (score > bestScore) {
+      bestScore = score
+      bestCategory = category
+    }
+  }
+
+  return bestScore > 0 ? bestCategory : null
+}
+
 /**
  * Find the closest matching entry for a user's decision string.
  * Returns the matched entry or null if no keyword matches.

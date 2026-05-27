@@ -38,14 +38,27 @@ function ImpactGauge({ level }) {
   )
 }
 
+const CATEGORY_PILL = {
+  transport: { icon: '🚗', label: 'Transport' },
+  food:      { icon: '🍔', label: 'Food' },
+  shopping:  { icon: '🛍️', label: 'Shopping' },
+  energy:    { icon: '⚡', label: 'Energy' },
+}
+
 export default function ResultCard({ result }) {
-  const { impact_level, impact_reason, co2_estimate, alternatives } = result
+  const { impact_level, impact_reason, co2_estimate, alternatives, _category } = result
+  const pill = _category ? CATEGORY_PILL[_category] : null
 
   return (
     <div className="rounded-2xl border border-green-100 bg-white shadow-md overflow-hidden">
       <div className="flex flex-col sm:flex-row">
         {/* Left: impact info */}
         <div className="flex-1 p-6 border-b sm:border-b-0 sm:border-r border-green-100 flex flex-col gap-3">
+          {pill && (
+            <span className="self-center rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-semibold text-green-700">
+              {pill.icon} {pill.label}
+            </span>
+          )}
           <ImpactGauge level={impact_level} />
           <p className="text-center text-sm font-medium text-gray-500">{co2_estimate}</p>
           <p className="text-gray-700 leading-relaxed text-sm">{impact_reason}</p>
