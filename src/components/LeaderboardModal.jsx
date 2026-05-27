@@ -11,8 +11,11 @@ function FriendButton({ row, currentUserId, onAction }) {
     try {
       await sendFriendRequest(row.id)
       onAction(row.id, 'pending', 'outgoing')
-    } catch {}
-    setBusy(false)
+    } catch (err) {
+      console.error('Friend request failed:', err)
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function handleAccept() {
@@ -20,8 +23,11 @@ function FriendButton({ row, currentUserId, onAction }) {
     try {
       await acceptFriend(row.id)
       onAction(row.id, 'accepted', null)
-    } catch {}
-    setBusy(false)
+    } catch (err) {
+      console.error('Accept friend failed:', err)
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (row.friendship_status === 'accepted') {
