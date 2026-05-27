@@ -40,9 +40,22 @@ export async function queryOllama(userDecision) {
   const data = await response.json()
   const raw = data.message?.content ?? ''
 
+  let parsed
   try {
-    return JSON.parse(raw)
+    parsed = JSON.parse(raw)
   } catch {
     throw new Error('Could not parse model response. Try again.')
   }
+
+  if (
+    typeof parsed.impact_level !== 'string' ||
+    typeof parsed.impact_reason !== 'string' ||
+    typeof parsed.co2_estimate !== 'string' ||
+    !Array.isArray(parsed.alternatives) ||
+    parsed.alternatives.length < 2
+  ) {
+    throw new Error('Could not parse model response. Try again.')
+  }
+
+  return parsed
 }
