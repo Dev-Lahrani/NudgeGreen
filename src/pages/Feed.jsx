@@ -21,11 +21,12 @@ export default function Feed({ onNotificationsRead }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [nudgedIds, setNudgedIds] = useState(new Set())
+  const [fetchError, setFetchError] = useState(false)
 
   useEffect(() => {
     getFeed()
       .then(setItems)
-      .catch(() => {})
+      .catch(() => setFetchError(true))
       .finally(() => setLoading(false))
     markNotificationsRead().catch(() => {})
     onNotificationsRead?.()
@@ -57,7 +58,15 @@ export default function Feed({ onNotificationsRead }) {
           <p className="text-center text-sm text-gray-400 py-12">Loading…</p>
         )}
 
-        {!loading && items.length === 0 && (
+        {!loading && fetchError && (
+          <div className="rounded-2xl border border-red-100 bg-white px-6 py-12 text-center">
+            <p className="text-3xl mb-3">⚠️</p>
+            <p className="text-sm font-semibold text-gray-700">Could not load feed</p>
+            <p className="text-xs text-gray-400 mt-1">Check your connection and try again.</p>
+          </div>
+        )}
+
+        {!loading && !fetchError && items.length === 0 && (
           <div className="rounded-2xl border border-green-100 bg-white px-6 py-12 text-center">
             <p className="text-3xl mb-3">🌿</p>
             <p className="text-sm font-semibold text-gray-700">No activity yet</p>
@@ -82,7 +91,7 @@ export default function Feed({ onNotificationsRead }) {
                   className="rounded-2xl border border-green-100 bg-white px-4 py-3.5 flex items-start gap-3"
                 >
                   <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">
-                    {item.display_name[0].toUpperCase()}
+                    {(item.display_name?.[0] ?? '?').toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-800 leading-snug">
