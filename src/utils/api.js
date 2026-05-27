@@ -80,3 +80,72 @@ export async function getBadges() {
   if (!res.ok) throw new Error('Failed to fetch badges')
   return parseJson(res)
 }
+
+export async function getNudge() {
+  const res = await fetch('/api/nudge', { headers: authHeaders() })
+  if (!res.ok) return { eligible: false }
+  return parseJson(res)
+}
+
+export async function sendFriendRequest(targetUserId) {
+  const res = await fetch('/api/friends/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ target_user_id: targetUserId }),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) throw new Error(data.error ?? 'Failed to send request')
+  return data
+}
+
+export async function acceptFriend(requesterId) {
+  const res = await fetch('/api/friends/accept', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ requester_id: requesterId }),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) throw new Error(data.error ?? 'Failed to accept')
+  return data
+}
+
+export async function removeFriend(userId) {
+  const res = await fetch(`/api/friends/${userId}`, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) throw new Error(data.error ?? 'Failed to remove')
+  return data
+}
+
+export async function getFeed() {
+  const res = await fetch('/api/feed', { headers: authHeaders() })
+  if (!res.ok) return []
+  return parseJson(res)
+}
+
+export async function nudgeDecision(decisionId) {
+  const res = await fetch(`/api/feed/nudge/${decisionId}`, {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  const data = await parseJson(res)
+  if (!res.ok) throw new Error(data.error ?? 'Failed to nudge')
+  return data
+}
+
+export async function getNotifications() {
+  const res = await fetch('/api/notifications', { headers: authHeaders() })
+  if (!res.ok) return { unread_count: 0, items: [] }
+  return parseJson(res)
+}
+
+export async function markNotificationsRead() {
+  const res = await fetch('/api/notifications/read', {
+    method: 'POST',
+    headers: authHeaders(),
+  })
+  if (!res.ok) return
+  return parseJson(res)
+}
