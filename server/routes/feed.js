@@ -40,6 +40,11 @@ router.post('/nudge/:decisionId', (req, res) => {
     `).get(req.userId, decision.user_id, decision.user_id, req.userId)
     if (!friendship) return res.status(403).json({ error: 'Not friends' })
 
+    const already = db.prepare(
+      'SELECT id FROM notifications WHERE from_user_id = ? AND decision_id = ?'
+    ).get(req.userId, decisionId)
+    if (already) return res.status(409).json({ error: 'Already nudged' })
+
     db.prepare(
       'INSERT INTO notifications (id, to_user_id, from_user_id, decision_id) VALUES (?, ?, ?, ?)'
     ).run(randomUUID(), decision.user_id, req.userId, decisionId)

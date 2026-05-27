@@ -121,7 +121,7 @@ export async function removeFriend(userId) {
 
 export async function getFeed() {
   const res = await fetch('/api/feed', { headers: authHeaders() })
-  if (!res.ok) return []
+  if (!res.ok) throw new Error('Failed to fetch feed')
   return parseJson(res)
 }
 
@@ -147,5 +147,11 @@ export async function markNotificationsRead() {
     headers: authHeaders(),
   })
   if (!res.ok) return
+  return parseJson(res)
+}
+
+export async function getFriendRequests() {
+  const res = await fetch('/api/friends/requests', { headers: authHeaders() })
+  if (!res.ok) return []
   return parseJson(res)
 }

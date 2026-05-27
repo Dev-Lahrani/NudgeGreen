@@ -1,5 +1,31 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getLeaderboard, sendFriendRequest, acceptFriend } from '../utils/api'
+import { getLeaderboard, sendFriendRequest, acceptFriend, getFriendRequests } from '../utils/api'
+
+function AcceptRequestButton({ requesterId, onAccept }) {
+  const [busy, setBusy] = useState(false)
+
+  async function handleAccept() {
+    setBusy(true)
+    try {
+      await acceptFriend(requesterId)
+      onAccept(requesterId)
+    } catch (err) {
+      console.error('Accept failed:', err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleAccept}
+      disabled={busy}
+      className="shrink-0 rounded-full bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+    >
+      {busy ? '…' : 'Accept'}
+    </button>
+  )
+}
 
 function FriendButton({ row, currentUserId, onAction }) {
   const [busy, setBusy] = useState(false)
@@ -69,12 +95,14 @@ export default function LeaderboardModal({ currentUserId, onClose }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [requests, setRequests] = useState([])
 
   useEffect(() => {
     getLeaderboard()
       .then(setRows)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
+    getFriendRequests().then(setRequests).catch(() => {})
   }, [])
 
   const handleFriendAction = useCallback((userId, newStatus, newDir) => {
@@ -86,6 +114,11 @@ export default function LeaderboardModal({ currentUserId, onClose }) {
       )
     )
   }, [])
+
+  const handleAcceptRequest = useCallback((requesterId) => {
+    setRequests((prev) => prev.filter((r) => r.id !== requesterId))
+    handleFriendAction(requesterId, 'accepted', null)
+  }, [handleFriendAction])
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
@@ -108,6 +141,24 @@ export default function LeaderboardModal({ currentUserId, onClose }) {
         </div>
 
         <div className="px-5 py-4 overflow-y-auto flex-1 -webkit-overflow-scrolling-touch">
+          {requests.length > 0 && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Friend Requests
+              </p>
+              <ul className="space-y-2">
+                {requests.map((req) => (
+                  <li key={req.id} className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 px-4 py-2.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">{req.display_name}</p>
+                      <p className="text-xs text-gray-400">{req.city}</p>
+                    </div>
+                    <AcceptRequestButton requesterId={req.id} onAccept={handleAcceptRequest} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {loading && <p className="text-sm text-gray-400 text-center py-8">Loading…</p>}
           {error && <p className="text-sm text-red-500 text-center py-8">{error}</p>}
           {!loading && !error && rows.length === 0 && (
