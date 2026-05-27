@@ -9,6 +9,7 @@ import CityModal from './components/CityModal'
 import AuthModal from './components/AuthModal'
 import LeaderboardModal from './components/LeaderboardModal'
 import BadgeToastContainer from './components/BadgeToast'
+import InstallPrompt from './components/InstallPrompt'
 import ProactiveNudge from './components/ProactiveNudge'
 import Dashboard from './pages/Dashboard'
 import Feed from './pages/Feed'
@@ -141,6 +142,7 @@ export default function App() {
 
   return (
     <>
+      <InstallPrompt />
       <BadgeToastContainer toasts={toasts} onDismiss={dismissToast} />
       <Routes>
         <Route
