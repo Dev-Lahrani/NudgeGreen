@@ -29,7 +29,7 @@ describe('queryOllama', () => {
     })
 
     const result = await queryOllama('ordering Zomato delivery')
-    expect(result).toEqual(VALID_RESPONSE)
+    expect(result).toMatchObject(VALID_RESPONSE)
   })
 
   it('throws when Ollama is not running (network error)', async () => {

@@ -12,9 +12,10 @@ const BASE_RESULT = {
 }
 
 describe('ResultCard', () => {
-  it('renders impact level badge', () => {
+  it('renders impact level text in gauge', () => {
     render(<ResultCard result={BASE_RESULT} />)
-    expect(screen.getByText('HIGH IMPACT')).toBeInTheDocument()
+    expect(screen.getByText('HIGH')).toBeInTheDocument()
+    expect(screen.getByText('IMPACT')).toBeInTheDocument()
   })
 
   it('renders co2 estimate', () => {
@@ -28,21 +29,24 @@ describe('ResultCard', () => {
     expect(screen.getByText('Local restaurant')).toBeInTheDocument()
   })
 
-  it('uses green badge for Low impact', () => {
+  it('uses green arc for Low impact', () => {
     render(<ResultCard result={{ ...BASE_RESULT, impact_level: 'Low' }} />)
-    const badge = screen.getByText('LOW IMPACT')
-    expect(badge).toHaveClass('bg-green-500')
+    const arc = screen.getByTestId('gauge-arc')
+    expect(arc).toHaveAttribute('stroke', '#1D9E75')
+    expect(arc).toHaveAttribute('data-impact', 'Low')
   })
 
-  it('uses yellow badge for Medium impact', () => {
+  it('uses amber arc for Medium impact', () => {
     render(<ResultCard result={{ ...BASE_RESULT, impact_level: 'Medium' }} />)
-    const badge = screen.getByText('MEDIUM IMPACT')
-    expect(badge).toHaveClass('bg-yellow-400')
+    const arc = screen.getByTestId('gauge-arc')
+    expect(arc).toHaveAttribute('stroke', '#F59E0B')
+    expect(arc).toHaveAttribute('data-impact', 'Medium')
   })
 
-  it('uses red badge for High impact', () => {
+  it('uses red arc for High impact', () => {
     render(<ResultCard result={BASE_RESULT} />)
-    const badge = screen.getByText('HIGH IMPACT')
-    expect(badge).toHaveClass('bg-red-500')
+    const arc = screen.getByTestId('gauge-arc')
+    expect(arc).toHaveAttribute('stroke', '#DC2626')
+    expect(arc).toHaveAttribute('data-impact', 'High')
   })
 })

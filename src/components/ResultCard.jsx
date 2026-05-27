@@ -15,6 +15,8 @@ function ImpactGauge({ level }) {
       <svg width="100" height="100" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r={r} fill="none" stroke={cfg.track} strokeWidth="9" />
         <circle
+          data-testid="gauge-arc"
+          data-impact={level}
           cx="50" cy="50" r={r}
           fill="none"
           stroke={cfg.color}
