@@ -38,6 +38,26 @@ function ImpactGauge({ level }) {
   )
 }
 
+const FLIGHT_CO2_KG = 0.15
+const SCALE_POPULATION = 1_000_000
+
+function formatNumber(n) {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`
+  return n.toLocaleString()
+}
+
+function computeScaleStat(result) {
+  // Prefer the precise db figure; fall back to parsing the estimate string
+  const co2Kg = result._matched?.co2_kg
+    ?? parseFloat(String(result.co2_estimate).match(/[\d.]+/)?.[0] ?? '0')
+  if (!co2Kg) return null
+  const totalKg = co2Kg * SCALE_POPULATION
+  const tonnes = Math.round(totalKg / 1000)
+  const flights = Math.round(totalKg / FLIGHT_CO2_KG)
+  return { tonnes, flights }
+}
+
 const CATEGORY_PILL = {
   transport: { icon: '🚗', label: 'Transport' },
   food:      { icon: '🍔', label: 'Food' },
@@ -48,6 +68,7 @@ const CATEGORY_PILL = {
 export default function ResultCard({ result }) {
   const { impact_level, impact_reason, co2_estimate, alternatives, _category } = result
   const pill = _category ? CATEGORY_PILL[_category] : null
+  const scale = computeScaleStat(result)
 
   return (
     <div className="rounded-2xl border border-green-100 bg-white shadow-md overflow-hidden">
@@ -62,6 +83,14 @@ export default function ResultCard({ result }) {
           <ImpactGauge level={impact_level} />
           <p className="text-center text-sm font-medium text-gray-500">{co2_estimate}</p>
           <p className="text-gray-700 leading-relaxed text-sm">{impact_reason}</p>
+          {scale && (
+            <p className="text-xs text-gray-400 leading-relaxed border-t border-green-50 pt-3">
+              🌍 If 1M people made this choice daily, that's{' '}
+              <span className="font-semibold text-gray-500">{formatNumber(scale.tonnes)} tonnes</span> of CO₂ —
+              equivalent to{' '}
+              <span className="font-semibold text-gray-500">{formatNumber(scale.flights)} flights</span> from Mumbai to Delhi.
+            </p>
+          )}
         </div>
 
         {/* Right: alternatives */}
