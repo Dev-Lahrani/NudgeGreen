@@ -312,6 +312,33 @@ export function classifyDecision(userDecision) {
   return bestScore > 0 ? bestCategory : null
 }
 
+function parseCo2Number(str) {
+  const m = String(str).match(/[\d.]+/)
+  return m ? parseFloat(m[0]) : 0
+}
+
+/**
+ * Score each alternative using nudge_score = (co2_saved × 0.7) + (convenience_score × 0.3).
+ * Convenience score is pulled from carbonData when a keyword match exists; defaults to 3.
+ * Adds nudge_score and convenience_score to each alternative object.
+ */
+export function scoreAlternatives(alternatives) {
+  const scored = alternatives.map((alt) => {
+    const co2Saved = parseCo2Number(alt.co2_saving)
+    const dbMatch = findMatch(alt.title)
+    const convenienceScore = dbMatch?.convenience_score ?? 3
+    const nudgeScore = parseFloat(((co2Saved * 0.7) + (convenienceScore * 0.3)).toFixed(2))
+    return { ...alt, co2Saved, convenienceScore, nudgeScore }
+  })
+
+  // Normalise to [0, 100] relative to the best score in this result set
+  const maxScore = Math.max(...scored.map((a) => a.nudgeScore), 0.01)
+  return scored.map((alt) => ({
+    ...alt,
+    nudgePercent: Math.round((alt.nudgeScore / maxScore) * 100),
+  }))
+}
+
 /**
  * Find the closest matching entry for a user's decision string.
  * Returns the matched entry or null if no keyword matches.

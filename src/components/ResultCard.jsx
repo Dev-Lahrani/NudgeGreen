@@ -74,6 +74,20 @@ export default function ResultCard({ result }) {
             >
               <p className="font-semibold text-gray-800 text-sm">{alt.title}</p>
               <p className="text-green-600 text-xs mt-1">{alt.co2_saving}</p>
+              {alt.nudgeScore !== undefined && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-400 font-medium">Smart Score</span>
+                    <span className="text-xs font-bold text-green-700">{alt.nudgeScore}</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-green-100">
+                    <div
+                      className="h-1.5 rounded-full bg-green-500 transition-all duration-700"
+                      style={{ width: `${alt.nudgePercent ?? 0}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

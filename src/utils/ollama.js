@@ -1,4 +1,4 @@
-import { findMatch, classifyDecision } from '../data/carbonData'
+import { findMatch, classifyDecision, scoreAlternatives } from '../data/carbonData'
 
 const OLLAMA_URL = 'http://localhost:11434/api/chat'
 const MODEL = 'llama3.1:8b'
@@ -84,5 +84,10 @@ export async function queryOllama(userDecision) {
     throw new Error('Could not parse model response. Try again.')
   }
 
-  return { ...parsed, _matched: match ?? null, _category: category ?? null }
+  return {
+    ...parsed,
+    alternatives: scoreAlternatives(parsed.alternatives),
+    _matched: match ?? null,
+    _category: category ?? null,
+  }
 }
