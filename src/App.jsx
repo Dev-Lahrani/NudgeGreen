@@ -3,6 +3,7 @@ import InputForm from './components/InputForm'
 import LoadingState from './components/LoadingState'
 import ResultCard from './components/ResultCard'
 import SessionTracker from './components/SessionTracker'
+import HistoryFeed from './components/HistoryFeed'
 import { queryOllama } from './utils/ollama'
 
 function parseCo2(estimate) {
@@ -17,17 +18,24 @@ export default function App() {
   const [sessionCo2, setSessionCo2] = useState(0)
   const [choiceCount, setChoiceCount] = useState(0)
   const [hasSession, setHasSession] = useState(false)
+  const [history, setHistory] = useState([])
+  const [lastDecision, setLastDecision] = useState('')
 
   async function handleSubmit(decision) {
     setLoading(true)
     setResult(null)
     setError(null)
+    setLastDecision(decision)
     try {
       const data = await queryOllama(decision)
       setResult(data)
       setSessionCo2((prev) => prev + parseCo2(data.co2_estimate))
       setChoiceCount((prev) => prev + (data.alternatives?.length ?? 0))
       setHasSession(true)
+      setHistory((prev) => [
+        { decision, impact_level: data.impact_level, co2_estimate: data.co2_estimate },
+        ...prev,
+      ])
     } catch (err) {
       setError(err.message)
     } finally {
@@ -61,6 +69,8 @@ export default function App() {
         )}
 
         {result && !loading && <ResultCard result={result} />}
+
+        <HistoryFeed entries={history} />
       </div>
     </div>
   )

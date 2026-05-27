@@ -1,7 +1,7 @@
 const GAUGE_CONFIG = {
-  Low:    { percent: 0.33, color: '#22c55e', track: '#bbf7d0' },
-  Medium: { percent: 0.66, color: '#f59e0b', track: '#fde68a' },
-  High:   { percent: 1.00, color: '#ef4444', track: '#fecaca' },
+  Low:    { percent: 0.33, color: '#1D9E75', track: '#a7f3d0' },
+  Medium: { percent: 0.66, color: '#F59E0B', track: '#fde68a' },
+  High:   { percent: 1.00, color: '#DC2626', track: '#fecaca' },
 }
 
 function ImpactGauge({ level }) {
