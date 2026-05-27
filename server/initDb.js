@@ -36,8 +36,28 @@ export function initDb() {
       UNIQUE (user_id, badge_id)
     );
 
-    CREATE INDEX IF NOT EXISTS idx_decisions_user ON decisions(user_id, created_at);
-    CREATE INDEX IF NOT EXISTS idx_saved_co2_user ON saved_co2(user_id, created_at);
-    CREATE INDEX IF NOT EXISTS idx_badges_user    ON badges(user_id);
+    CREATE TABLE IF NOT EXISTS friendships (
+      id         TEXT PRIMARY KEY,
+      user_id    TEXT REFERENCES users(id) ON DELETE CASCADE,
+      friend_id  TEXT REFERENCES users(id) ON DELETE CASCADE,
+      status     TEXT NOT NULL DEFAULT 'pending',
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE (user_id, friend_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id           TEXT PRIMARY KEY,
+      to_user_id   TEXT REFERENCES users(id) ON DELETE CASCADE,
+      from_user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+      decision_id  TEXT REFERENCES decisions(id) ON DELETE CASCADE,
+      read         INTEGER NOT NULL DEFAULT 0,
+      created_at   TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_decisions_user      ON decisions(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_saved_co2_user      ON saved_co2(user_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_badges_user         ON badges(user_id);
+    CREATE INDEX IF NOT EXISTS idx_friendships_user    ON friendships(user_id, friend_id);
+    CREATE INDEX IF NOT EXISTS idx_notifications_to    ON notifications(to_user_id, read);
   `)
 }
