@@ -4,7 +4,9 @@ import LoadingState from './components/LoadingState'
 import ResultCard from './components/ResultCard'
 import SessionTracker from './components/SessionTracker'
 import HistoryFeed from './components/HistoryFeed'
+import CityModal from './components/CityModal'
 import { queryOllama } from './utils/ollama'
+import { getSavedCity, saveCity } from './data/cities'
 
 function parseCo2(estimate) {
   const match = String(estimate).match(/[\d.]+/)
@@ -19,15 +21,19 @@ export default function App() {
   const [choiceCount, setChoiceCount] = useState(0)
   const [hasSession, setHasSession] = useState(false)
   const [history, setHistory] = useState([])
-  const [lastDecision, setLastDecision] = useState('')
+  const [city, setCity] = useState(() => getSavedCity())
+
+  function handleCitySelect(selectedCity) {
+    saveCity(selectedCity.id)
+    setCity(selectedCity)
+  }
 
   async function handleSubmit(decision) {
     setLoading(true)
     setResult(null)
     setError(null)
-    setLastDecision(decision)
     try {
-      const data = await queryOllama(decision)
+      const data = await queryOllama(decision, city)
       setResult(data)
       setSessionCo2((prev) => prev + parseCo2(data.co2_estimate))
       setChoiceCount((prev) => prev + (data.alternatives?.length ?? 0))
@@ -45,6 +51,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-green-50">
+      {!city && <CityModal onSelect={handleCitySelect} />}
+
       {hasSession && <SessionTracker totalCo2={sessionCo2} choiceCount={choiceCount} />}
 
       <div className={`mx-auto max-w-2xl px-4 py-12 ${hasSession ? 'pt-20' : ''}`}>
@@ -52,6 +60,15 @@ export default function App() {
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold text-green-800 tracking-tight">🌿 NudgeGreen</h1>
           <p className="mt-2 text-gray-500">Find out the environmental impact of your daily decisions</p>
+          {city && (
+            <button
+              onClick={() => setCity(null)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-white px-3 py-1 text-xs text-green-700 hover:border-green-400 transition-colors"
+            >
+              📍 {city.name}
+              <span className="text-gray-400">· change</span>
+            </button>
+          )}
         </div>
 
         {/* Input */}

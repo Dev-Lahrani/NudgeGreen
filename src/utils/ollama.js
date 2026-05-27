@@ -22,24 +22,32 @@ const CATEGORY_NUDGE = {
   energy:    'Focus nudges on reducing usage duration, switching to renewables, or efficiency habits.',
 }
 
-function buildSystemPrompt(match, category) {
+function buildSystemPrompt(match, category, city) {
   let prompt = BASE_SYSTEM_PROMPT
+
+  if (city) {
+    prompt += `\n\nUSER CITY: ${city.name}, India. Transit context: ${city.transit}. Mention ${city.name}-specific greener alternatives where relevant (e.g. local trains, metro lines available in ${city.name}).`
+  }
 
   if (category && CATEGORY_NUDGE[category]) {
     prompt += `\n\nCATEGORY: ${category}. ${CATEGORY_NUDGE[category]}`
   }
 
   if (match) {
-    prompt += `\n\nVERIFIED DATA: This activity has been measured at ${match.co2_kg} kg CO₂ (matched entry: "${match.label}"). Use exactly "~${match.co2_kg} kg CO₂" as the co2_estimate value. Base your impact_level and impact_reason on this verified figure.`
+    // Apply city multiplier to transport decisions
+    const co2 = (category === 'transport' && city)
+      ? parseFloat((match.co2_kg * city.multiplier).toFixed(2))
+      : match.co2_kg
+    prompt += `\n\nVERIFIED DATA: This activity has been measured at ${co2} kg CO₂ in ${city?.name ?? 'India'} (matched entry: "${match.label}"${city && category === 'transport' ? `, city multiplier ${city.multiplier}x applied` : ''}). Use exactly "~${co2} kg CO₂" as the co2_estimate value. Base your impact_level and impact_reason on this verified figure.`
   }
 
   return prompt
 }
 
-export async function queryOllama(userDecision) {
+export async function queryOllama(userDecision, city = null) {
   const match = findMatch(userDecision)
   const category = match?.category ?? classifyDecision(userDecision)
-  const systemPrompt = buildSystemPrompt(match, category)
+  const systemPrompt = buildSystemPrompt(match, category, city)
 
   let response
   try {
