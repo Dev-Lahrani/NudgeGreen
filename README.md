@@ -163,9 +163,9 @@ After 5 logged decisions, the app analyzes your habits (most common category + t
 <td align="center"><b>Carbon Story</b></td>
 </tr>
 <tr>
-<td><img src="public/favicon.svg" alt="Analysis" width="200"></td>
-<td><img src="public/favicon.svg" alt="Dashboard" width="200"></td>
-<td><img src="public/favicon.svg" alt="Carbon Story" width="200"></td>
+<td><img src="public/icons/icon-512.svg" alt="Analysis" width="200"></td>
+<td><img src="public/icons/icon-512.svg" alt="Dashboard" width="200"></td>
+<td><img src="public/icons/icon-512.svg" alt="Carbon Story" width="200"></td>
 </tr>
 <tr>
 <td align="center">Type a decision → get instant CO₂<br>analysis + greener alternatives</td>

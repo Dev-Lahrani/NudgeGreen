@@ -1,4 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="102" fill="#16a34a"/>
-  <text x="256" y="370" font-size="270" text-anchor="middle" font-family="serif">🌿</text>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <filter id="s" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity=".15"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="102" fill="url(#g)" filter="url(#s)"/>
+  <path d="M 256 416 Q 400 384 400 224 Q 400 96 304 112 Q 208 128 176 240 Q 144 352 256 416 Z" fill="#fff" opacity=".95"/>
+  <path d="M 304 112 L 368 240 L 304 264 L 352 192 L 272 128 Z" fill="url(#g)"/>
+  <circle cx="264" cy="224" r="16" fill="#fff" opacity=".6"/>
 </svg>
